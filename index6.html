@@ -10,13 +10,13 @@
       integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M"
       crossorigin="anonymous"
     />
-    <title>Item Lister</title>
+    <title>Hello World - Item Lister</title>
   </head>
   <body>
     <header id="main-header" class="bg-success text-white p-4 mb-3">
       <div class="container">
         <h1 id="header-title">
-          Item Lister <span style="display: none">123</span>
+          Hello World - Item Lister <span style="display: none">123</span>
         </h1>
       </div>
     </header>
@@ -37,8 +37,10 @@
       </div>
     </div>
     <script>
-       // Get the parent element
-    const parentElement = document.getElementById('items');
+      // JavaScript code here
+
+      // Get the parent element
+let parentElement = document.getElementById('items');
 
 // Create a new element and set its text content
 const newElement = document.createElement('p');
@@ -87,6 +89,18 @@ const textNode = document.createTextNode('This is a text node.');
 // Append the text node to the newElement
 newElement.appendChild(textNode);
 
+
+ // Get the parent element (the list with id="items")
+  parentElement = document.getElementById('items');
+
+// Create a new list item (li element)
+const newListItem = document.createElement('li');
+newListItem.className = 'list-group-item';
+newListItem.textContent = 'Hello Item 1';
+
+// Insert the new list item before the existing first list item (Item 1)
+parentElement.insertBefore(newListItem, parentElement.firstElementChild);
     </script>
   </body>
 </html>
+
