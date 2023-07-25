@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Local storage</title>
+</head>
+<body>
+    <div>
+        <form>
+            <input type="text" placeholder="enter the name" id="name" required />
+            <br>
+            <input type="email" id="email" placeholder="enter the email id" required />
+            <br>
+            <button type="button" id="submit" onclick="getdetails()">Submit</button>
+            <button type="button" id="delete" onclick="deleteDetails()">Delete</button>
+        </form>
+    </div>
+    <div id="result"></div>
+    <script>
+        function getdetails() {
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+
+            // Store the data
+            localStorage.setItem("name", name);
+            localStorage.setItem("email", email);
+
+            // Display the result
+            const resultdiv = document.getElementById('result');
+            resultdiv.innerHTML = `<p>Name: ${name}</p><p>Email: ${email}</p>`;
+        }
+
+        function deleteDetails() {
+            // Remove the data from local storage
+            localStorage.removeItem("name");
+            localStorage.removeItem("email");
+
+            // Clear the input fields and the displayed result
+            const nameInput = document.getElementById('name');
+            const emailInput = document.getElementById('email');
+            const resultdiv = document.getElementById('result');
+
+            nameInput.value = "";
+            emailInput.value = "";
+            resultdiv.innerHTML = "";
+        }
+
+        // Display any existing data on page load
+        const storedName = localStorage.getItem("name");
+        const storedEmail = localStorage.getItem("email");
+        if (storedName && storedEmail) {
+            const nameInput = document.getElementById('name');
+            const emailInput = document.getElementById('email');
+            const resultdiv = document.getElementById('result');
+
+            nameInput.value = storedName;
+            emailInput.value = storedEmail;
+            resultdiv.innerHTML = `<p>Name: ${storedName}</p><p>Email: ${storedEmail}</p>`;
+        }
+    </script>
+</body>
+</html>
