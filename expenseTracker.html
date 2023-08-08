@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Expense tracker</title>
+</head>
+<body>
+  <form>
+    <label for="money">Amount </label>
+    <input type="number" id="money" required/>
+    <br>
+    <label for="text">Description </label>
+    <input type="text" id="description" required/>
+    <br>
+    <label for="expensetype">Type </label>
+    <select id="expensetype">
+      <option value="food">Food</option>
+      <option value="electricity">Electricity</option>
+      <option value="rent">Rent</option>
+    </select>
+    <br>
+    <button type="button" id="submitExpense">Submit Expense</button>
+  </form>
+  
+  <div id="expenseList">
+    <!-- Expenses will be displayed here -->
+  </div>
+  
+  <script>
+    const moneyInput = document.getElementById('money');
+    const descriptionInput = document.getElementById('description');
+    const expenseTypeInput = document.getElementById('expensetype');
+    const submitButton = document.getElementById('submitExpense');
+    const expenseListDiv = document.getElementById('expenseList');
+
+    function submitExpense() {
+      const amount = moneyInput.value;
+      const description = descriptionInput.value;
+      const expenseType = expenseTypeInput.value;
+
+      const expense = {
+        amount: amount,
+        description: description,
+        expenseType: expenseType
+      };
+
+      let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+      expenses.push(expense);
+      localStorage.setItem('expenses', JSON.stringify(expenses));
+
+      moneyInput.value = '';
+      descriptionInput.value = '';
+
+      displayExpenses();
+    }
+
+    function displayExpenses() {
+      expenseListDiv.innerHTML = '';
+
+      const expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+
+      for (let i = 0; i < expenses.length; i++) {
+        const expense = expenses[i];
+
+        const expenseDiv = document.createElement('div');
+        expenseDiv.innerHTML = `
+          <p><strong>Amount:</strong> $${expense.amount}</p>
+          <p><strong>Description:</strong> ${expense.description}</p>
+          <p><strong>Type:</strong> ${expense.expenseType}</p>
+          <button type="button" class="editExpense" data-index="${i}">Edit</button>
+          <button type="button" class="deleteExpense" data-index="${i}">Delete</button>
+          <hr>
+        `;
+        expenseListDiv.appendChild(expenseDiv);
+      }
+
+      // Attach event listeners to edit and delete buttons
+      const editButtons = document.getElementsByClassName('editExpense');
+      const deleteButtons = document.getElementsByClassName('deleteExpense');
+
+      for (const button of editButtons) {
+        button.addEventListener('click', editExpense);
+      }
+
+      for (const button of deleteButtons) {
+        button.addEventListener('click', deleteExpense);
+      }
+    }
+
+    function editExpense(event) {
+      const index = event.target.getAttribute('data-index');
+      const expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+      const expense = expenses[index];
+
+      moneyInput.value = expense.amount;
+      descriptionInput.value = expense.description;
+      expenseTypeInput.value = expense.expenseType;
+    }
+
+    function deleteExpense(event) {
+      const index = event.target.getAttribute('data-index');
+      const expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+      expenses.splice(index, 1);
+      localStorage.setItem('expenses', JSON.stringify(expenses));
+      displayExpenses();
+    }
+
+    submitButton.addEventListener('click', submitExpense);
+    displayExpenses();
+  </script>
+</body>
+</html>
+
