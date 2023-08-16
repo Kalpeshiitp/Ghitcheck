@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <form onsubmit="saveToLocalStorage(event)">
+      <label for="name">Name</label>
+      <input id="name" type="text" required />
+
+      <label for="email">Email</label>
+      <input id="email" type="email" required />
+
+      <label for="number">Number</label>
+      <input id="number" type="number" />
+
+      <button type="submit">Submit</button>
+    </form>
+
+    <div id="output"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.min.js"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.min.js"></script> -->
+    <script>
+      function saveToLocalStorage(event) {
+        event.preventDefault();
+        const Name = document.getElementById("name").value;
+        const Email = document.getElementById("email").value;
+        const Number = document.getElementById("number").value;
+
+        const obj = {
+          Name,
+          Email,
+          Number,
+        };
+        axios
+          .post(
+            "https://crudcrud.com/api/c717516a047945a7b17627d2f29ef48e/appoitment",obj)
+          .then((respose) => {
+            showNewUserOnScreen(respose.data);
+            console.log(respose);
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+        // const existingData = localStorage.getItem(getEmail);
+        // if (existingData) {
+        //   updateExistingUser(getEmail, obj);
+        // } else {
+        //   localStorage.setItem(getEmail, JSON.stringify(obj));
+        //   showNewUserOnScreen(obj);
+        // }
+        // showNewUserOnScreen(obj)
+        clearFormInputs();
+      }
+
+      function showNewUserOnScreen(user) {
+        const outputDiv = document.getElementById("output");
+        const userDiv = document.createElement("div");
+        userDiv.dataset.email = user.Email; // Added data-email attribute
+        userDiv.innerHTML = `<p>Name: ${user.Name}</p><p>Email: ${user.Email}</p><p>Number: ${user.Number}</p>
+                                 <button onclick="editUser('${user.Email}')">Edit</button>
+                                 <button onclick="deleteUser('${user.Email}')">Delete</button>`;
+        outputDiv.appendChild(userDiv);
+      }
+
+      function updateDisplayedUser(updatedUser) {
+        const userDiv = document.querySelector(
+          `[data-email="${updatedUser.Email}"]`
+        );
+        userDiv.innerHTML = `<p>Name: ${updatedUser.Name}</p><p>Email: ${updatedUser.Email}</p><p>Number: ${updatedUser.Number}</p>
+                                 <button onclick="editUser('${updatedUser.Email}')">Edit</button>
+                                 <button onclick="deleteUser('${updatedUser.Email}')">Delete</button>`;
+      }
+
+      function updateExistingUser(email, updatedUser) {
+        localStorage.setItem(email, JSON.stringify(updatedUser));
+        updateDisplayedUser(updatedUser);
+      }
+
+      function editUser(email) {
+        const userData = JSON.parse(localStorage.getItem(email));
+        document.getElementById("name").value = userData.Name;
+        document.getElementById("email").value = userData.Email;
+        document.getElementById("number").value = userData.Number;
+      }
+
+      function deleteUser(email) {
+        localStorage.removeItem(email);
+        const userDiv = document.querySelector(`[data-email="${email}"]`);
+        userDiv.remove();
+      }
+
+      function clearFormInputs() {
+        document.getElementById("name").value = "";
+        document.getElementById("email").value = "";
+        document.getElementById("number").value = "";
+      }
+
+      window.addEventListener("DOMContentLoaded", () => {
+        const localStorageObj = localStorage;
+        const localStorageKeys = Object.keys(localStorageObj);
+
+        for (let i = 0; i < localStorageKeys.length; i++) {
+          const key = localStorageKeys[i];
+          const userDetailsString = localStorageObj[key];
+          const userDetailsObj = JSON.parse(userDetailsString);
+          showNewUserOnScreen(userDetailsObj);
+        }
+      });
+    </script>
+  </body>
+</html>
