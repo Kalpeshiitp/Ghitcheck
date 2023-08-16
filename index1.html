@@ -16,6 +16,9 @@
     <label for="number">Number</label>
     <input id="number" type="number" />
 
+    <!-- Hidden input field to store the user's ID for editing -->
+    <input id="user-id" type="hidden" />
+
     <button type="submit">Submit</button>
   </form>
 
@@ -24,6 +27,7 @@
   <script>
     function saveToLocalStorage(event) {
       event.preventDefault();
+      const userId = document.getElementById("user-id").value; // Get the user's ID
       const Name = document.getElementById("name").value;
       const Email = document.getElementById("email").value;
       const Number = document.getElementById("number").value;
@@ -33,16 +37,37 @@
         Email,
         Number,
       };
-      axios
-        .post(
-          "https://crudcrud.com/api/c717516a047945a7b17627d2f29ef48e/appoitment", obj)
-        .then((response) => {
-          showNewUserOnScreen(response.data);
-          console.log(response);
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+
+      if (userId) {
+        // Editing an existing user
+        axios
+          .put(
+            `https://crudcrud.com/api/c717516a047945a7b17627d2f29ef48e/appoitment/${userId}`,
+            obj
+          )
+          .then((response) => {
+            updateUserOnScreen(response.data);
+            console.log(response);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      } else {
+        // Creating a new user
+        axios
+          .post(
+            "https://crudcrud.com/api/c717516a047945a7b17627d2f29ef48e/appoitment",
+            obj
+          )
+          .then((response) => {
+            showNewUserOnScreen(response.data);
+            console.log(response);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      }
+
       clearFormInputs();
     }
 
@@ -50,8 +75,17 @@
       const outputDiv = document.getElementById("output");
       const userDiv = document.createElement("div");
       userDiv.className = "user-entry"; // Add a class for styling
-
       userDiv.dataset.email = user.Email;
+
+      // Create edit icon
+      const editIcon = document.createElement("span");
+      editIcon.className = "edit-icon";
+      editIcon.innerHTML = "&#9998;"; // Pencil icon
+
+      // Add click event handler for the edit icon
+      editIcon.addEventListener("click", () => {
+        populateEditForm(user);
+      });
 
       // Create delete icon
       const deleteIcon = document.createElement("span");
@@ -59,6 +93,7 @@
       deleteIcon.innerHTML = "&#128465;"; // Trash bin icon
 
       userDiv.innerHTML = `<p>Name: ${user.Name}</p><p>Email: ${user.Email}</p><p>Number: ${user.Number}</p>`;
+      userDiv.appendChild(editIcon);
       userDiv.appendChild(deleteIcon);
 
       // Add click event handler for the delete icon
@@ -68,6 +103,25 @@
       });
 
       outputDiv.appendChild(userDiv);
+    }
+
+    function populateEditForm(user) {
+      document.getElementById("name").value = user.Name;
+      document.getElementById("email").value = user.Email;
+      document.getElementById("number").value = user.Number;
+
+      // Store the user's ID in the hidden input field for later use during submission
+      document.getElementById("user-id").value = user._id;
+    }
+
+    function updateUserOnScreen(user) {
+      const userDiv = document.querySelector(`div[data-email="${user.Email}"]`);
+      if (userDiv) {
+        const userData = userDiv.getElementsByTagName("p");
+        userData[0].textContent = `Name: ${user.Name}`;
+        userData[1].textContent = `Email: ${user.Email}`;
+        userData[2].textContent = `Number: ${user.Number}`;
+      }
     }
 
     function deleteUserFromServer(userId) {
@@ -85,6 +139,7 @@
       document.getElementById("name").value = "";
       document.getElementById("email").value = "";
       document.getElementById("number").value = "";
+      document.getElementById("user-id").value = ""; // Clear user ID
     }
 
     window.addEventListener("DOMContentLoaded", () => {
@@ -102,7 +157,8 @@
   </script>
 
   <style>
-    .delete-icon {
+    .delete-icon,
+    .edit-icon {
       cursor: pointer;
     }
   </style>
