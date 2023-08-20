@@ -1,33 +1,99 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
-  <title>Item Lister</title>
-  <script src="/demo.js"></script>
-</head>
-<body>
-  <header id="main-header" class="bg-success text-white p-4 mb-3">
-    <div class="container">
-      <h1 id="header-title">Item Lister <span style="display:none">123</span></h1>
-    </div>
-  </header>
-  <div class="container">
-   <div id="main" class="card card-body">
-    <h2 class="title">Add Items</h2>
-    <form class="form-inline mb-3">
-      <input type="text" class="form-control mr-2">
-      <input type="submit" class="btn btn-dark" value="Submit">
+  <head>
+    <title>Add Item Quantity</title>
+  </head>
+  <body>
+    <form onsubmit="addItem(event)">
+        <label for="name">Item Name</label>
+        <input id="name" type="text" required />
+  
+        <label for="description">description</label>
+        <input id="description" type="text" required />
+  
+        <label for="number">Price</label>
+        <input id="price" type="number" />
+  
+        <label for="number">Quantity</label>
+        <input id="quantity" type="number" required />
+  
+      <button type="submit">Add Item</button>
     </form>
-    <h2 class="title">Items</h2>
-    <ul id="items" class="list-group" style="font-weight: bold;">
-      <li class="list-group-item">Item 1</li>
-      <li class="list-group-item">Item 2</li>
-      <li class="list-group-item" style="background-color: green;">Item 3</li>
-      <li class="list-group-item" >Item 4</li>
-    </ul>
-   </div>
-  </div>
-</body>
+    <div id="input"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.min.js"></script>
+    <script>
+    function addItem(event) {
+  event.preventDefault();
+
+  const Name = document.getElementById("name").value;
+  const Description = document.getElementById("description").value;
+  const Price = document.getElementById("price").value;
+  const Quantity = document.getElementById("quantity").value;
+
+  const itemData = {
+    name: Name,
+    description: Description,
+    price: Price,
+    quantity: Quantity,
+  };
+
+  axios.post("https://crudcrud.com/api/0e78947483134dc6aff97d2a845da70f/Additem", itemData)
+    .then(response => {
+      // Handle the response if needed
+      console.log("Item added successfully:", response.data);
+
+      // Display the added item in the input div
+      displayItem(itemData);
+    })
+    .catch(error => {
+      // Handle errors if any
+      console.error("Error adding item:", error);
+    });
+}
+
+
+      function displayItem(item) {
+        const inputDiv = document.getElementById("input");
+
+        // Create a string representation of the item and append it to the div
+        const itemHTML = `
+          <div>
+            <h3>${item.name}</h3>
+            <p>Description: ${item.description}</p>
+            <p>Price: ${item.price}</p>
+            <p>Quantity: <span id="${item.name}-quantity">${item.quantity}</span></p>
+            <button onclick="buyItem('${item.name}', 1)">Buy 1</button>
+            <button onclick="buyItem('${item.name}', 2)">Buy 2</button>
+            <button onclick="buyItem('${item.name}', 3)">Buy 3</button>
+          </div>
+        `;
+
+        inputDiv.innerHTML += itemHTML;
+      }
+
+      function buyItem(itemName, quantityToBuy) {
+        const quantitySpan = document.getElementById(`${itemName}-quantity`);
+        let currentQuantity = parseInt(quantitySpan.textContent);
+
+        if (currentQuantity >= quantityToBuy) {
+          currentQuantity -= quantityToBuy;
+          quantitySpan.textContent = currentQuantity;
+        } else {
+          alert("Not enough quantity available!");
+        }
+      }
+      window.onload = function () {
+  // Fetch existing items from the API and display them
+  axios.get("https://crudcrud.com/api/0e78947483134dc6aff97d2a845da70f/Additem")
+    .then(response => {
+      const items = response.data;
+      items.forEach(item => displayItem(item));
+    })
+    .catch(error => {
+      console.error("Error fetching items:", error);
+    });
+};
+
+    </script>
+  </body>
+</html>
