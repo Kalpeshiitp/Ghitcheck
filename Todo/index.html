@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>To-Do List</title>
+    <script
+      src="https://kit.fontawesome.com/f9642a6144.js"
+      crossorigin="anonymous"
+    ></script>
+  </head>
+  <body>
+    <h1>To-Do List</h1>
+    <form id="todo-form">
+      <label for="toDo">To Do</label>
+      <input type="text" id="toDo" required />
+      <label for="description">Description</label>
+      <input type="text" id="description" required />
+      <button type="button" id="addButton" onclick="addToDo()">Add</button>
+    </form>
+    <div id="display">
+      <div id="remaining"><h3>To Do Remaining</h3></div>
+      <div id="done"><h3>To Do Done</h3></div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.min.js"></script>
+    <script>
+      const apiUrl =
+        "https://crudcrud.com/api/0e78947483134dc6aff97d2a845da70f/todo"; // Replace with your actual API endpoint
+
+      async function addToDo() {
+        const getToDo = document.getElementById("toDo").value;
+        const getDescription = document.getElementById("description").value;
+
+        // Check if both input fields are empty
+        if (getToDo.trim() === "" || getDescription.trim() === "") {
+          alert("Please enter both the task and description.");
+          return; // Exit the function
+        }
+
+        const obj = {
+          task: getToDo,
+          description: getDescription,
+        };
+
+        try {
+          // Send a POST request to the API to add the task
+          await axios.post(apiUrl, obj);
+
+          // Clear input fields
+          document.getElementById("toDo").value = "";
+          document.getElementById("description").value = "";
+
+          // Display stored tasks
+          displayTasks();
+        } catch (error) {
+          console.error("Error adding task:", error);
+        }
+      }
+
+      async function displayTasks() {
+        const remainingDiv = document.getElementById("remaining");
+        const doneDiv = document.getElementById("done");
+
+        try {
+          // Send a GET request to the API to retrieve tasks
+          const response = await axios.get(apiUrl);
+          const storedTasks = response.data || [];
+
+          // Clear divs
+          remainingDiv.innerHTML = "<h3>To Do Remaining</h3>";
+          doneDiv.innerHTML = "<h3>To Do Done</h3>";
+
+          storedTasks.forEach((task, index) => {
+            const taskDiv = document.createElement("div");
+            taskDiv.textContent = `${task.task}: ${task.description}`;
+
+            if (!task.done) {
+              const tickIcon = document.createElement("i");
+              tickIcon.className = "fas fa-check";
+              tickIcon.style.cursor = "pointer";
+              tickIcon.addEventListener("click", () =>
+                moveTaskToDone(task._id)
+              );
+
+              const deleteIcon = document.createElement("i");
+              deleteIcon.className = "fas fa-trash-alt";
+              deleteIcon.style.cursor = "pointer";
+              deleteIcon.addEventListener("click", () => deleteTask(task._id));
+
+              taskDiv.appendChild(tickIcon);
+              taskDiv.appendChild(deleteIcon);
+            }
+
+            if (task.done) {
+              taskDiv.classList.add("done-task"); // Add a class for styling
+              doneDiv.appendChild(taskDiv);
+            } else {
+              remainingDiv.appendChild(taskDiv);
+            }
+          });
+        } catch (error) {
+          console.error("Error fetching tasks:", error);
+        }
+      }
+
+      async function moveTaskToDone(taskId) {
+        try {
+          // Send a GET request to the API to retrieve the specific task
+          const response = await axios.get(`${apiUrl}/${taskId}`);
+          const taskToUpdate = response.data;
+
+          // Update the task as done
+          taskToUpdate.done = true;
+
+          // Send a PUT request to the API to update the task
+          await axios.put(`${apiUrl}/${taskId}`, taskToUpdate);
+
+          // Refresh the display
+          displayTasks();
+        } catch (error) {
+          console.error("Error updating task:", error);
+        }
+      }
+
+      async function deleteTask(taskId) {
+        try {
+          // Send a DELETE request to the API to delete the task
+          await axios.delete(`${apiUrl}/${taskId}`);
+
+          // Refresh the display
+          displayTasks();
+        } catch (error) {
+          console.error("Error deleting task:", error);
+        }
+      }
+
+      // Initial display of stored tasks
+      displayTasks();
+    </script>
+  </body>
+</html>
