@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      const b = [];
+
+      function createPost() {
+        return new Promise((resolve, reject) => {
+          setTimeout(() => {
+            b.push("post is created");
+            resolve();
+            updateLastUserActivityTime();
+          }, 2000);
+        });
+      }
+
+      function updateLastUserActivityTime() {
+        return new Promise((resolve, reject) => {
+          setTimeout(() => {
+            b.push("update last activity");
+            resolve();
+          }, 1000);
+        });
+      }
+
+      function deletePost() {
+        return new Promise((resolve, reject) => {
+          setTimeout(() => {
+            if (b.length > 0) {
+              const poppedPost = b.pop();
+              resolve(poppedPost);
+            } else {
+              reject('No posts to delete');
+            }
+          }, 3000);
+        });
+      }
+
+      createPost()
+        .then(() => {
+          return updateLastUserActivityTime();
+        })
+        .then(() => {
+          console.log("Posts and activity time:", b);
+          return deletePost();
+        })
+        .then((deletedPost) => {
+          console.log(`Deleted post: ${deletedPost}`);
+          console.log("Updated posts:", b);
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+        });
+    </script>
+  </body>
+</html>
