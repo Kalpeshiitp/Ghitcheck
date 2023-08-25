@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Application registration</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.min.js"></script> <!-- Include Axios library -->
+  </head>
+  <body>
+    <h2>Fill the details</h2>
+    <form>
+      <label for="name">Name</label>
+      <input id="name" type="text" placeholder="Enter name" required />
+
+      <label for="email">Email</label>
+      <input id="email" type="email" placeholder="Enter email id" required />
+
+      <label for="number">Number</label>
+      <input id="number" type="number" placeholder="Enter number" required />
+
+      <button id="button" type="button" onclick="GetDetails()">Submit</button>
+    </form>
+    <div id="input"></div>
+    <script>
+      let EditIndex = -1;
+
+      const apiUrl = "https://crudcrud.com/api/c73f5488d04841d3a3136604350c028c/User"; // Your CRUD API URL
+
+      async function GetDetails() {
+        const Name = document.getElementById("name").value;
+        const Email = document.getElementById("email").value;
+        const Number = document.getElementById("number").value;
+
+        const obj = {
+          Name: Name,
+          Email: Email,
+          Number: Number,
+        };
+
+        if (EditIndex === -1) {
+          await axios.post(apiUrl, obj); // Create operation
+        } else {
+          await axios.put(`${apiUrl}/${EditIndex}`, obj); // Update operation
+          EditIndex = -1;
+        }
+
+        DisplayDetails();
+        ClearInputFields();
+      }
+
+      async function DisplayDetails() {
+        const response = await axios.get(apiUrl);
+        const userdetails = response.data || [];
+
+        const DisplayDiv = document.getElementById("input");
+        DisplayDiv.innerHTML = "";
+
+        const userList = document.createElement("ul");
+
+        userdetails.forEach((user, index) => {
+          const userItem = document.createElement("li");
+          userItem.innerHTML = `Name: ${user.Name}, Email: ${user.Email}, Phone No: ${user.Number}`;
+
+          const editButton = document.createElement("button");
+          editButton.textContent = "Edit";
+          editButton.addEventListener("click", function () {
+            EditDetails(user._id); // Use the ID from the API response
+          });
+
+          const deleteButton = document.createElement("button");
+          deleteButton.textContent = "Delete";
+          deleteButton.addEventListener("click", async function () {
+            await axios.delete(`${apiUrl}/${user._id}`); // Delete operation
+            DisplayDetails();
+          });
+          userItem.appendChild(editButton);
+          userItem.appendChild(deleteButton);
+          userList.appendChild(userItem);
+        });
+        DisplayDiv.appendChild(userList);
+      }
+
+      function EditDetails(id) {
+        EditIndex = id;
+        const storeData = axios.get(`${apiUrl}/${id}`);
+        const user = storeData.data;
+
+        document.getElementById("name").value = user.Name;
+        document.getElementById("email").value = user.Email;
+        document.getElementById("number").value = user.Number;
+
+        document.getElementById("button").textContent = "Save";
+      }
+
+      function ClearInputFields() {
+        document.getElementById("name").value = "";
+        document.getElementById("email").value = "";
+        document.getElementById("number").value = "";
+        document.getElementById("button").textContent = "Submit";
+      }
+
+      DisplayDetails();
+    </script>
+  </body>
+</html>
+
