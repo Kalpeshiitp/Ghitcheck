@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Application registration</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.min.js"></script> <!-- Include Axios library -->
+</head>
+<body>
+  <h2>Fill the details</h2>
+  <form>
+    <!-- Input fields for user details -->
+    <label for="name">Name</label>
+    <input id="name" type="text" placeholder="Enter name" required />
+
+    <label for="email">Email</label>
+    <input id="email" type="email" placeholder="Enter email id" required />
+
+    <label for="number">Number</label>
+    <input id="number" type="number" placeholder="Enter number" required />
+
+    <!-- Button to submit user details -->
+    <button id="button" type="button" onclick="GetDetails()">Submit</button>
+  </form>
+  <div id="input"></div>
+  <script>
+    let EditIndex = -1;
+
+    const apiUrl = "https://crudcrud.com/api/c73f5488d04841d3a3136604350c028c/User"; // Your CRUD API URL
+
+    async function GetDetails() {
+      // Get user input values
+      const Name = document.getElementById("name").value;
+      const Email = document.getElementById("email").value;
+      const Number = document.getElementById("number").value;
+
+      const obj = {
+        Name: Name,
+        Email: Email,
+        Number: Number,
+      };
+
+      if (EditIndex === -1) {
+        // Create a new user
+        await axios.post(apiUrl, obj);
+      } else {
+        // Update an existing user
+        await axios.put(`${apiUrl}/${EditIndex}`, obj);
+        EditIndex = -1;
+      }
+
+      // Refresh the user details display
+      DisplayDetails();
+      // Clear input fields
+      ClearInputFields();
+    }
+
+    async function DisplayDetails() {
+      // Fetch user details from the API
+      const response = await axios.get(apiUrl);
+      const userdetails = response.data || [];
+
+      const DisplayDiv = document.getElementById("input");
+      DisplayDiv.innerHTML = "";
+
+      const userList = document.createElement("ul");
+
+      userdetails.forEach((user, index) => {
+        const userItem = document.createElement("li");
+        userItem.innerHTML = `Name: ${user.Name}, Email: ${user.Email}, Phone No: ${user.Number}`;
+
+        // Create edit icon
+        const editIcon = document.createElement("i");
+        editIcon.className = "fas fa-edit";
+        editIcon.addEventListener("click", function () {
+          EditDetails(user._id); // Use the ID from the API response
+        });
+
+        // Create delete icon
+        const deleteIcon = document.createElement("i");
+        deleteIcon.className = "fas fa-trash-alt";
+        deleteIcon.addEventListener("click", async function () {
+          await axios.delete(`${apiUrl}/${user._id}`); // Delete operation
+          DisplayDetails(); // Refresh the display
+        });
+
+        userItem.appendChild(editIcon);
+        userItem.appendChild(deleteIcon);
+        userList.appendChild(userItem);
+      });
+
+      DisplayDiv.appendChild(userList);
+    }
+
+    function EditDetails(id) {
+      EditIndex = id;
+      const storeData = axios.get(`${apiUrl}/${id}`);
+      const user = storeData.data;
+
+      // Populate input fields with user data
+      document.getElementById("name").value = user.Name;
+      document.getElementById("email").value = user.Email;
+      document.getElementById("number").value = user.Number;
+
+      document.getElementById("button").textContent = "Save"; // Change button text
+    }
+
+    function ClearInputFields() {
+      // Clear input fields and reset button text
+      document.getElementById("name").value = "";
+      document.getElementById("email").value = "";
+      document.getElementById("number").value = "";
+      document.getElementById("button").textContent = "Submit";
+    }
+
+    // Initial display of user details
+    DisplayDetails();
+  </script>
+</body>
+</html>
