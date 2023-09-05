@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo List</title>
+    <!-- Include the Axios library from a CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.5.0/axios.min.js"></script>
+</head>
+<body>
+    <div id="todo-container">
+        <!-- Input fields for todo name and description -->
+        <input type="text" id="todo-name" placeholder="Enter Todo Name" />
+        <input type="text" id="todo-description" placeholder="Enter Todo Description" />
+        <!-- Button to submit a new todo -->
+        <button id="submit-button">Submit</button>
+    </div>
+    <div id="remaining-todos">
+        <!-- Heading for remaining todos -->
+        <h2>Remaining Todos</h2>
+        <!-- Unordered list to display remaining todos -->
+        <ul id="todo-list"></ul>
+    </div>
+    <div id="done-todos">
+        <!-- Heading for done todos -->
+        <h2>Done Todos</h2>
+        <!-- Unordered list to display done todos -->
+        <ul id="done-list"></ul>
+    </div>
+    <script>
+        // Execute this code when the DOM (HTML) is fully loaded
+        document.addEventListener("DOMContentLoaded", function () {
+            // Get references to various elements on the page
+            const todoList = document.getElementById("todo-list");
+            const doneList = document.getElementById("done-list");
+            const todoNameInput = document.getElementById("todo-name");
+            const todoDescriptionInput = document.getElementById("todo-description");
+            const submitButton = document.getElementById("submit-button");
+
+            // Define the base URL for the Crudcrud API
+            const API_BASE_URL = "https://crudcrud.com/api/b72ce2330bc949cd8046cc19ba873de0/ToDolist";
+
+            // Function to create a todo item element
+            function createTodoItem(id, name, description, done) {
+                const todoItem = document.createElement("li");
+                todoItem.className = "todo-item";
+                todoItem.setAttribute("data-id", id); // Store the unique ID as a data attribute
+                todoItem.innerHTML = `
+                    <div>${name}: ${description}</div>
+                    <div>
+                        <button class="tick-button">Tick</button>
+                        <button class="delete-button">Delete</button>
+                    </div>
+                `;
+
+                // Add click event listeners to the tick and delete buttons
+                const tickButton = todoItem.querySelector(".tick-button");
+                tickButton.addEventListener("click", function () {
+                    const todoItemId = todoItem.getAttribute("data-id");
+                    // Send a PUT request to update the todo's status
+                    axios
+                        .put(API_BASE_URL + `/${todoItemId}`, { done: true })
+                        .then(() => {
+                            // Remove from todoList
+                            if (todoList.contains(todoItem)) {
+                                todoList.removeChild(todoItem);
+                            }
+                            // Create a new todo item element for the done list
+                            const doneTodoItem = createTodoItem(todoItemId, name, description, true);
+                            doneList.appendChild(doneTodoItem);
+                        })
+                        .catch((error) => {
+                            console.error("Error updating todo:", error);
+                        });
+                });
+
+                const deleteButton = todoItem.querySelector(".delete-button");
+                deleteButton.addEventListener("click", function () {
+                    const todoItemId = todoItem.getAttribute("data-id");
+                    axios
+                        .delete(API_BASE_URL + `/${todoItemId}`)
+                        .then(() => {
+                            if (todoList.contains(todoItem)) {
+                                todoList.removeChild(todoItem);
+                            } else if (doneList.contains(todoItem)) {
+                                doneList.removeChild(todoItem);
+                            }
+                        })
+                        .catch((error) => {
+                            console.error("Error deleting todo:", error);
+                        });
+                });
+
+                if (done) {
+                    doneList.appendChild(todoItem);
+                } else {
+                    todoList.appendChild(todoItem);
+                }
+
+                return todoItem;
+            }
+
+            // Function to load todos from the API
+            function loadTodos() {
+                // Send a GET request to retrieve all todos
+                axios
+                    .get(API_BASE_URL)
+                    .then((response) => {
+                        // Handle the response and create todo items
+                        const todos = response.data;
+                        todos.forEach((todo) => {
+                            const todoItem = createTodoItem(todo._id, todo.name, todo.description, todo.done);
+                            // No need to append here; it's done in createTodoItem
+                        });
+                    })
+                    .catch((error) => {
+                        console.error("Error loading todos:", error);
+                    });
+            }
+
+            // Add a click event listener to the submit button
+            submitButton.addEventListener("click", function () {
+                // Get the values from the input fields
+                const todoName = todoNameInput.value;
+                const todoDescription = todoDescriptionInput.value;
+                // Check if the todo name is empty and show an alert if it is
+                if (todoName.trim() === "") {
+                    alert("Please enter a todo name.");
+                    return;
+                }
+                // Create a todo object with the input values
+                const todoData = {
+                    name: todoName,
+                    description: todoDescription,
+                    done: false,
+                };
+                // Send a POST request to create a new todo
+                axios
+                    .post(API_BASE_URL, todoData)
+                    .then((response) => {
+                        // Handle the response from the API
+                        const createdTodo = response.data;
+                        // Create a todo item element and append it to the todo list
+                        const todoItem = createTodoItem(
+                            createdTodo._id, // Use the unique ID generated by Crudcrud
+                            createdTodo.name,
+                            createdTodo.description,
+                            createdTodo.done
+                        );
+                        // Clear input fields
+                        todoNameInput.value = "";
+                        todoDescriptionInput.value = "";
+                    })
+                    .catch((error) => {
+                        console.error("Error creating todo:", error);
+                    });
+            });
+
+            // Load initial todos
+            loadTodos();
+        });
+    </script>
+</body>
+</html>
