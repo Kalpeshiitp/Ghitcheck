@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Candy Shop Stock Management</title>
+  </head>
+  <body>
+    <h1>Candy Shop Stock Management</h1>
+    <form onsubmit="addCandy(event)">
+      <label>
+        Candy Name
+        <input
+          id="candyName"
+          type="text"
+          placeholder="Enter candy name"
+          required
+        />
+      </label>
+
+      <label>
+        Description
+        <input
+          id="candyDescription"
+          type="text"
+          placeholder="Enter description"
+          required
+        />
+      </label>
+
+      <label>
+        Price
+        <input
+          id="candyPrice"
+          type="number"
+          placeholder="Enter price"
+          required
+        />
+      </label>
+
+      <label>
+        Quantity
+        <input
+          id="candyQuantity"
+          type="number"
+          placeholder="Enter quantity"
+          required
+        />
+      </label>
+
+      <button type="submit">Add Candy</button>
+    </form>
+
+    <ul id="candyList"></ul>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.24.0/axios.min.js"></script>
+    <script>
+      const API_URL = "https://crudcrud.com/api/4f16dab2d44c4512ae8434100c9a28ad/BuyProduct";
+      let candyList = [];
+
+      // Function to add a candy
+      function addCandy(event) {
+        event.preventDefault();
+
+        const candyName = document.getElementById("candyName").value;
+        const candyDescription = document.getElementById("candyDescription").value;
+        const candyPrice = parseFloat(document.getElementById("candyPrice").value);
+        const candyQuantity = parseInt(document.getElementById("candyQuantity").value);
+
+        const newCandy = {
+          name: candyName,
+          description: candyDescription,
+          price: candyPrice,
+          quantity: candyQuantity,
+        };
+
+        axios
+          .post(API_URL, newCandy)
+          .then((response) => {
+            // Add the candy to the list
+            candyList.push(response.data);
+            displayList();
+            saveCandyList(); // Save the candy list to local storage
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      }
+
+      // Function to update the candy list
+      function displayList() {
+        const candyListElement = document.getElementById("candyList");
+        candyListElement.innerHTML = "";
+
+        candyList.forEach((candy, index) => {
+          const listItem = document.createElement("li");
+          listItem.innerHTML = `
+            <strong>${candy.name}</strong> - ${candy.description}, Price: $${candy.price}, Quantity: ${candy.quantity}
+            <button onclick="buyCandy(${index}, 1)">Buy 1</button>
+            <button onclick="buyCandy(${index}, 2)">Buy 2</button>
+            <button onclick="buyCandy(${index}, 3)">Buy 3</button>
+          `;
+          candyListElement.appendChild(listItem);
+        });
+      }
+
+      // Function to buy candy
+      function buyCandy(index, quantityToBuy) {
+        if (candyList[index].quantity >= quantityToBuy) {
+          candyList[index].quantity -= quantityToBuy;
+          axios
+            .put(`${API_URL}/${candyList[index]._id}`, {
+              quantity: candyList[index].quantity,
+            })
+            .then(() => {
+              displayList();
+              saveCandyList(); // Save the updated candy list to local storage
+            })
+            .catch((err) => {
+              console.log(err);
+            });
+        }
+      }
+
+      // Function to save the candy list to local storage
+      function saveCandyList() {
+        localStorage.setItem("candyList", JSON.stringify(candyList));
+      }
+
+      // Function to load the candy list from local storage
+      function loadCandyList() {
+        const savedCandyList = localStorage.getItem("candyList");
+        if (savedCandyList) {
+          candyList = JSON.parse(savedCandyList);
+          displayList();
+        }
+      }
+
+      // Initially, load the candy list
+      axios
+        .get(API_URL)
+        .then((response) => {
+          candyList = response.data;
+          loadCandyList(); // Load the candy list from local storage
+        })
+        .catch((err) => {
+          console.log(err);
+          loadCandyList(); // Load the candy list from local storage even on error
+        });
+    </script>
+  </body>
+</html>
